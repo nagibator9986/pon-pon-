@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ТЫ ПОН?</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a14;
+    --accent: #ff2d78;
+    --yellow: #ffe600;
+    --cyan: #00f5ff;
+    --green: #39ff14;
+    --purple: #bf00ff;
+    --card: rgba(255,255,255,0.04);
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,45,120,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,45,120,0.07) 1px, transparent 1px);
+    background-size: 48px 48px;
+    animation: gridMove 8s linear infinite;
+  }
+  @keyframes gridMove {
+    from { transform: translate(0,0); }
+    to   { transform: translate(48px, 48px); }
+  }
+
+  .orb {
+    position: fixed; border-radius: 50%; filter: blur(80px); z-index: 0;
+    animation: orbFloat 6s ease-in-out infinite alternate;
+  }
+  .orb1 { width:340px;height:340px;background:rgba(255,45,120,0.25);top:-80px;left:-80px; animation-delay:0s; }
+  .orb2 { width:280px;height:280px;background:rgba(0,245,255,0.18);bottom:-60px;right:-60px; animation-delay:2s; }
+  .orb3 { width:200px;height:200px;background:rgba(191,0,255,0.2);top:40%;left:30%; animation-delay:1s; }
+  @keyframes orbFloat {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(30px,20px) scale(1.1); }
+  }
+
+  /* Floating particles */
+  .particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .particle {
+    position: absolute; border-radius: 50%;
+    animation: particleDrift linear infinite;
+    opacity: 0.6;
+  }
+  @keyframes particleDrift {
+    from { transform: translateY(110vh) rotate(0deg); opacity:0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.6; }
+    to   { transform: translateY(-10vh) rotate(720deg); opacity:0; }
+  }
+
+  /* Main card */
+  .scene { position: relative; z-index: 10; text-align: center; padding: 20px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 32px;
+    padding: 60px 60px 50px;
+    max-width: 680px;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 0 80px rgba(255,45,120,0.15), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:32px;
+    background: linear-gradient(135deg, rgba(255,45,120,0.08) 0%, transparent 60%);
+    pointer-events:none;
+  }
+
+  /* Emoji display */
+  .emoji-wrap {
+    font-size: 5rem;
+    margin-bottom: 16px;
+    display: block;
+    animation: emojiPop 0.4s cubic-bezier(.34,1.56,.64,1);
+    filter: drop-shadow(0 0 20px rgba(255,230,0,0.6));
+  }
+  @keyframes emojiPop {
+    from { transform: scale(0) rotate(-20deg); opacity:0; }
+    to   { transform: scale(1) rotate(0deg); opacity:1; }
+  }
+
+  /* Question text */
+  .question {
+    font-family: 'Russo One', sans-serif;
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 12px;
+    animation: textIn 0.5s cubic-bezier(.34,1.56,.64,1);
+    text-shadow: 0 0 40px currentColor;
+  }
+  @keyframes textIn {
+    from { transform: translateY(30px) scale(0.9); opacity:0; }
+    to   { transform: translateY(0) scale(1); opacity:1; }
+  }
+
+  .sub {
+    color: rgba(255,255,255,0.55);
+    font-size: 1rem;
+    margin-bottom: 40px;
+    animation: textIn 0.6s cubic-bezier(.34,1.56,.64,1) 0.1s both;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  /* Progress dots */
+  .progress {
+    display: flex; gap: 8px; justify-content: center;
+    margin-bottom: 36px;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    transition: all 0.3s;
+  }
+  .dot.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); transform: scale(1.3); }
+  .dot.done   { background: var(--green);  box-shadow: 0 0 10px var(--green); }
+
+  /* Buttons */
+  .btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+  .btn {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1.15rem;
+    padding: 16px 44px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.03em;
+  }
+  .btn::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: rgba(255,255,255,0.15);
+    opacity:0;
+    transition: opacity 0.2s;
+  }
+  .btn:hover::after { opacity:1; }
+  .btn:hover { transform: translateY(-3px) scale(1.04); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-yes {
+    background: linear-gradient(135deg, #39ff14, #00c896);
+    color: #000;
+    box-shadow: 0 4px 30px rgba(57,255,20,0.4);
+  }
+  .btn-yes:hover { box-shadow: 0 6px 40px rgba(57,255,20,0.65); }
+
+  .btn-no {
+    background: linear-gradient(135deg, #ff2d78, #ff6b00);
+    color: #fff;
+    box-shadow: 0 4px 30px rgba(255,45,120,0.4);
+  }
+  .btn-no:hover { box-shadow: 0 6px 40px rgba(255,45,120,0.65); }
+
+  /* Shake animation for card when NO is pressed */
+  .shake {
+    animation: cardShake 0.5s cubic-bezier(.36,.07,.19,.97);
+  }
+  @keyframes cardShake {
+    10%,90% { transform: translateX(-4px); }
+    20%,80% { transform: translateX(8px); }
+    30%,50%,70% { transform: translateX(-8px); }
+    40%,60% { transform: translateX(8px); }
+  }
+
+  /* Glitch effect */
+  .glitch {
+    animation: glitchText 0.3s steps(2,end) 3;
+  }
+  @keyframes glitchText {
+    0%   { text-shadow: 2px 0 var(--cyan), -2px 0 var(--accent); }
+    33%  { text-shadow: -3px 0 var(--yellow), 3px 0 var(--purple); }
+    66%  { text-shadow: 3px 0 var(--cyan), -3px 0 var(--yellow); }
+    100% { text-shadow: none; }
+  }
+
+  /* Win screen */
+  .win-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .win-screen.active { display: flex; }
+  .win-title {
+    font-family: 'Russo One', sans-serif;
+    font-size: 3rem;
+    background: linear-gradient(135deg, var(--yellow), var(--accent), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: winPulse 1s ease-in-out infinite alternate, textIn 0.5s ease both;
+    text-align: center;
+  }
+  @keyframes winPulse {
+    from { filter: brightness(1); }
+    to   { filter: brightness(1.4); }
+  }
+  .win-sub {
+    color: rgba(255,255,255,0.7);
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .restart-btn {
+    font-family: 'Russo One', sans-serif;
+    font-size: 1rem;
+    padding: 14px 36px;
+    border-radius: 14px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .restart-btn:hover {
+    border-color: var(--cyan);
+    background: rgba(0,245,255,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,245,255,0.3);
+  }
+
+  /* Confetti */
+  .confetti-wrap { position: fixed; inset:0; z-index:100; pointer-events:none; }
+  .confetti-piece {
+    position:absolute;
+    width:10px; height:10px;
+    top:-20px;
+    animation: confettiFall linear forwards;
+    border-radius: 2px;
+  }
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity:0; }
+  }
+
+  /* Meter bar */
+  .meter-wrap {
+    margin-bottom: 28px;
+    animation: textIn 0.5s ease both;
+  }
+  .meter-label {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .meter-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--yellow), var(--cyan));
+    transition: width 0.5s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  /* level badge */
+  .level-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 99px;
+    margin-bottom: 18px;
+    animation: textIn 0.4s ease both;
+  }
+
+  /* mobile */
+  @media (max-width: 560px) {
+    .card { padding: 40px 28px 36px; }
+    .btn  { padding: 14px 28px; font-size: 1rem; }
+    .win-title { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div class="particles" id="particles"></div>
+<div class="confetti-wrap" id="confetti"></div>
+
+<div class="scene">
+  <div class="card" id="card">
+
+    <!-- Main question screen -->
+    <div id="main-screen">
+      <span class="emoji-wrap" id="emoji">🤔</span>
+
+      <div class="level-badge" id="level-badge">Уровень 1</div>
+
+      <div class="meter-wrap">
+        <div class="meter-label">Уровень понятия</div>
+        <div class="meter-bar"><div class="meter-fill" id="meter" style="width:0%"></div></div>
+      </div>
+
+      <div class="progress" id="progress"></div>
+
+      <div class="question" id="question" style="font-size:2.4rem; color: var(--yellow);">Ты пон?</div>
+      <div class="sub" id="sub">Скажи честно...</div>
+
+      <div class="btns">
+        <button class="btn btn-yes" onclick="onYes()">✅ Да, пон!</button>
+        <button class="btn btn-no"  onclick="onNo()">❌ Не пон</button>
+      </div>
+    </div>
+
+    <!-- Win screen -->
+    <div id="win-screen" class="win-screen">
+      <span style="font-size:5rem; animation: emojiPop 0.5s ease both;">🏆</span>
+      <div class="win-title" id="win-title">АБСОЛЮТНЫЙ ПОН!</div>
+      <div class="win-sub" id="win-sub">Ты настоящая легенда понимания!</div>
+      <button class="restart-btn" onclick="restart()">🔄 Начать заново</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const yesStages = [
+  {
+    q: "Ты пон?",
+    sub: "Скажи честно...",
+    emoji: "🤔",
+    color: "var(--yellow)",
+    badge: "Уровень 1",
+    badgeBg: "rgba(255,230,0,0.15)", badgeColor: "#ffe600"
+  },
+  {
+    q: "Ты ТОЧНО пон?",
+    sub: "Не ври себе, подумай хорошенько",
+    emoji: "🧐",
+    color: "var(--cyan)",
+    badge: "Уровень 2",
+    badgeBg: "rgba(0,245,255,0.15)", badgeColor: "#00f5ff"
+  },
+  {
+    q: "Ты ТОЧНО УЛЬТРА ПОН?!",
+    sub: "Это уже серьёзный вопрос",
+    emoji: "😤",
+    color: "var(--accent)",
+    badge: "Уровень 3 🔥",
+    badgeBg: "rgba(255,45,120,0.15)", badgeColor: "#ff2d78"
+  },
+  {
+    q: "ТЫ ТОЧНО МЕГА УЛЬТРА ПОН???",
+    sub: "Три знака вопроса — это не шутки",
+    emoji: "🤯",
+    color: "var(--green)",
+    badge: "Уровень 4 ⚡",
+    badgeBg: "rgba(57,255,20,0.15)", badgeColor: "#39ff14"
+  },
+  {
+    q: "ТЫ ГИПЕР МЕГА УЛЬТРА СУПЕР ПОН?!?!",
+    sub: "Твой мозг сейчас дымится, да?",
+    emoji: "🧠💥",
+    color: "var(--purple)",
+    badge: "Уровень 5 🌀",
+    badgeBg: "rgba(191,0,255,0.15)", badgeColor: "#bf00ff"
+  },
+  {
+    q: "ТЫ КОСМИЧЕСКИ КВАНТОВО МЕГА АБСОЛЮТНО ПОН?!?!?!",
+    sub: "Учёные не могут ответить на этот вопрос",
+    emoji: "🚀🌌",
+    color: "#ff9f00",
+    badge: "Уровень MAX 💀",
+    badgeBg: "rgba(255,159,0,0.15)", badgeColor: "#ff9f00"
+  }
+];
+
+const noReasons = [
+  {
+    q: "А шо... почему ты не пон? 😢",
+    sub: "Объясни, мне важно знать",
+    emoji: "😢",
+    opts: ["Всё запутано", "Мозг не работает", "Проснулся только что", "Сложно слишком"],
+  },
+  {
+    q: "Слушай, ну это странно... ты вообще пытался пон? 🤨",
+    sub: "Честно-честно?",
+    emoji: "🤨",
+    opts: ["Пытался, не вышло", "Не пытался", "А зачем пон-то?", "Я забыл как"],
+  },
+  {
+    q: "Подожди, ты вообще знаешь что такое пон? 🧐",
+    sub: "Это важный вопрос",
+    emoji: "🧐",
+    opts: ["Нет...", "Наверное да?", "Точно нет", "Раньше знал"],
+  },
+  {
+    q: "Ладно... может тебе помочь с понятием? 🥺",
+    sub: "Я готов объяснить",
+    emoji: "🥺",
+    opts: ["Да, помоги", "Не надо", "Уже сам разобрался", "Пон не нужен"],
+  },
+  {
+    q: "ТЫ СЕРЬЁЗНО ДО СИХ ПОР НЕ ПОН?! 😡",
+    sub: "ЭТО УЖЕ ПРОСТО НЕПРИЛИЧНО",
+    emoji: "😡",
+    opts: ["Прости меня", "Не пон и горжусь", "Помогите", "Я сдаюсь"],
+  }
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let yesIndex = 0;
+let noMode   = false;
+let noIndex  = 0;
+const TOTAL  = yesStages.length;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+buildParticles();
+buildProgress();
+render();
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function render() {
+  const s = yesStages[yesIndex];
+  setEl('emoji',    s.emoji);
+  setEl('question', s.q);
+  setEl('sub',      s.sub);
+
+  const qEl = document.getElementById('question');
+  qEl.style.color = s.color;
+  qEl.style.fontSize = yesIndex === 0 ? '2.4rem'
+                     : yesIndex <= 1  ? '2.1rem'
+                     : yesIndex <= 3  ? '1.7rem'
+                     : '1.35rem';
+
+  const badge = document.getElementById('level-badge');
+  badge.textContent = s.badge;
+  badge.style.background = s.badgeBg;
+  badge.style.color = s.badgeColor;
+  badge.style.border = `1px solid ${s.badgeColor}40`;
+
+  document.getElementById('meter').style.width =
+    Math.round((yesIndex / TOTAL) * 100) + '%';
+
+  updateProgress();
+  pulseEmoji();
+}
+
+function renderNo() {
+  const s = noReasons[noIndex % noReasons.length];
+  setEl('emoji',    s.emoji);
+  setEl('question', s.q);
+  setEl('sub',      s.sub);
+  document.getElementById('question').style.color = '#ff6b6b';
+  document.getElementById('question').style.fontSize = '1.7rem';
+
+  const badge = document.getElementById('level-badge');
+  badge.textContent = '❓ Не-пон режим';
+  badge.style.background = 'rgba(255,107,107,0.15)';
+  badge.style.color = '#ff6b6b';
+  badge.style.border = '1px solid rgba(255,107,107,0.3)';
+
+  // Replace buttons with choice options + back
+  const btns = document.querySelector('.btns');
+  btns.innerHTML = `
+    ${s.opts.map((o,i) =>
+      `<button class="btn" style="background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.12);font-family:'Nunito',sans-serif;font-weight:900;font-size:0.95rem;padding:12px 20px;flex:1 1 40%"
+        onclick="onNoChoice(${i})">${o}</button>`
+    ).join('')}
+    <button class="btn" style="background:rgba(57,255,20,0.12);color:#39ff14;border:1px solid rgba(57,255,20,0.3);width:100%;margin-top:6px;font-size:0.95rem"
+      onclick="tryAgain()">💡 Ладно, я пон!</button>
+  `;
+  document.getElementById('meter').style.width = '0%';
+}
+
+// ─── ACTIONS ──────────────────────────────────────────────────────────────────
+
+function onYes() {
+  noMode = false;
+  if (yesIndex >= TOTAL - 1) {
+    showWin();
+    return;
+  }
+  yesIndex++;
+  animateCard();
+  render();
+  updateProgress();
+}
+
+function onNo() {
+  noMode = true;
+  noIndex = 0;
+  shakeCard();
+  animateCard();
+  renderNo();
+}
+
+function onNoChoice(i) {
+  noIndex++;
+  shakeCard();
+  setTimeout(() => {
+    animateCard();
+    renderNo();
+  }, 160);
+}
+
+function tryAgain() {
+  noMode = false;
+  yesIndex = Math.max(0, yesIndex - 1);
+  restoreButtons();
+  animateCard();
+  render();
+}
+
+function restoreButtons() {
+  document.querySelector('.btns').innerHTML = `
+    <button class="btn btn-yes" onclick="onYes()">✅ Да, пон!</button>
+    <button class="btn btn-no"  onclick="onNo()">❌ Не пон</button>
+  `;
+}
+
+function restart() {
+  yesIndex = 0; noMode = false; noIndex = 0;
+  document.getElementById('win-screen').classList.remove('active');
+  document.getElementById('main-screen').style.display = '';
+  restoreButtons();
+  animateCard();
+  buildProgress();
+  render();
+}
+
+// ─── WIN ──────────────────────────────────────────────────────────────────────
+
+function showWin() {
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('win-screen').classList.add('active');
+  launchConfetti();
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function setEl(id, text) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.remove('glitch');
+  void el.offsetWidth;
+  el.classList.add('glitch');
+}
+
+function animateCard() {
+  const c = document.getElementById('card');
+  c.style.animation = 'none';
+  void c.offsetWidth;
+  // just a subtle scale pop
+  c.animate([
+    { transform:'scale(0.97)', opacity:0.8 },
+    { transform:'scale(1)',    opacity:1   }
+  ], { duration:350, easing:'cubic-bezier(.34,1.56,.64,1)' });
+}
+
+function shakeCard() {
+  const c = document.getElementById('card');
+  c.classList.remove('shake');
+  void c.offsetWidth;
+  c.classList.add('shake');
+  setTimeout(() => c.classList.remove('shake'), 600);
+}
+
+function pulseEmoji() {
+  const e = document.getElementById('emoji');
+  e.style.animation = 'none';
+  void e.offsetWidth;
+  e.style.animation = 'emojiPop 0.4s cubic-bezier(.34,1.56,.64,1)';
+}
+
+// ─── PROGRESS DOTS ───────────────────────────────────────────────────────────
+
+function buildProgress() {
+  const p = document.getElementById('progress');
+  p.innerHTML = '';
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.id = `dot-${i}`;
+    p.appendChild(d);
+  }
+}
+
+function updateProgress() {
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.getElementById(`dot-${i}`);
+    if (!d) continue;
+    d.className = 'dot' + (i < yesIndex ? ' done' : i === yesIndex ? ' active' : '');
+  }
+}
+
+// ─── PARTICLES ───────────────────────────────────────────────────────────────
+
+function buildParticles() {
+  const wrap = document.getElementById('particles');
+  const colors = ['#ff2d78','#00f5ff','#ffe600','#39ff14','#bf00ff'];
+  for (let i = 0; i < 28; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 6 + 3;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*12+8}s;
+      animation-delay:${Math.random()*10}s;
+      box-shadow: 0 0 ${size*2}px currentColor;
+    `;
+    wrap.appendChild(p);
+  }
+}
+
+// ─── CONFETTI ────────────────────────────────────────────────────────────────
+
+function launchConfetti() {
+  const wrap = document.getElementById('confetti');
+  wrap.innerHTML = '';
+  const colors = ['#ff2d78','#ffe600','#00f5ff','#39ff14','#bf00ff','#ff9f00','#fff'];
+  for (let i = 0; i < 90; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    const size = Math.random()*12 + 6;
+    c.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${size}px; height:${size * (Math.random()*1.5+0.5)}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-duration:${Math.random()*2+1.5}s;
+      animation-delay:${Math.random()*1.2}s;
+      transform: rotate(${Math.random()*360}deg);
+    `;
+    wrap.appendChild(c);
+    setTimeout(() => c.remove(), 4000);
+  }
+}
+</script>
+</body>
+</html>
